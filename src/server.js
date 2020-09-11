@@ -1,6 +1,6 @@
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
-
+const morgan = require("morgan");
 const express = require("express");
 
 const { usersRouter } = require("./users/users.router.js");
@@ -30,13 +30,13 @@ exports.Server = class Server {
   }
 
   initRoutes() {
-    this.app.use("/api/contacts", usersRouter);
+    this.app.use("/api/contacts", morgan("tiny"), usersRouter);
   }
 
   initErrorHandling() {
     this.app.use((err, req, res, next) => {
       const status = err.status || 500;
-      return res.status(status.send(err.message));
+      return res.status(status).send(err.message);
     });
   }
 
