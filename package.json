@@ -14,7 +14,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "start"; "nodemon start"
+    "start": "nodemon start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
