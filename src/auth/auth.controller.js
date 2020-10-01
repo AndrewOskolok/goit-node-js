@@ -9,7 +9,7 @@ exports.register = async (req, res, next) => {
     const isExistingUser = await UserModel.findOne({ email });
 
     if (isExistingUser) {
-      return res.status(409).send("Email in use");
+      return res.status(409).send({ status: "Email in use" });
     }
 
     const hashPassword = await bcryptjs.hash(
@@ -42,15 +42,17 @@ exports.login = async (req, res, next) => {
     }
 
     if (!isCorrect) {
-      return res.status(401).send("Email or password is wrong");
+      return res.status(401).send({ status: "Not authorized" });
     }
 
     const token = jwt.sign({ uid: user._id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
 
-    res.cookie("token", token, { httpOnly: true });
-
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 86400e3),
+      httpOnly: true,
+    });
     res.status(201).send({
       token: token,
       user: {
@@ -70,12 +72,12 @@ exports.logout = async (req, res, next) => {
   try {
     payload = jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
-    return res.status(401).send("Not authorized");
+    return res.status(401).send({ status: "Not authorized" });
   }
 
   const user = await UserModel.findById(payload.uid);
   if (!user) {
-    return res.status(401).send("Not authorized");
+    return res.status(401).send({ status: "Not authorized" });
   }
 
   res.clearCookie("token");
@@ -90,12 +92,12 @@ exports.authorize = async (req, res, next) => {
   try {
     payload = jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
-    return res.status(401).send("Not authorized");
+    return res.status(401).send({ status: "Not authorized" });
   }
 
   const user = await UserModel.findById(payload.uid);
   if (!user) {
-    return res.status(401).send("Not authorized");
+    return res.status(401).send({ status: "Not authorized" });
   }
 
   req.user = user;
