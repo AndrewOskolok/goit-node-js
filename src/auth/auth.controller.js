@@ -3,66 +3,56 @@ const jwt = require("jsonwebtoken");
 const { UserModel } = require("../users/users.model");
 
 exports.register = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    const isExistingUser = await UserModel.findOne({ email });
+  const isExistingUser = await UserModel.findOne({ email });
 
-    if (isExistingUser) {
-      return res.status(409).send({ status: "Email in use" });
-    }
-
-    const hashPassword = await bcryptjs.hash(
-      password,
-      Number(process.env.BCRYPT_SALT)
-    );
-
-    const newUser = await UserModel.create({
-      email,
-      password: hashPassword,
-    });
-
-    res
-      .status(201)
-      .send({ user: { email, subscription: newUser.subscription } });
-  } catch (error) {
-    next(error);
+  if (isExistingUser) {
+    return res.status(409).send({ status: "Email in use" });
   }
+
+  const hashPassword = await bcryptjs.hash(
+    password,
+    Number(process.env.BCRYPT_SALT)
+  );
+
+  const newUser = await UserModel.create({
+    email,
+    password: hashPassword,
+  });
+
+  res.status(201).send({ user: { email, subscription: newUser.subscription } });
 };
 
 exports.login = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    const user = await UserModel.findOne({ email });
+  const user = await UserModel.findOne({ email });
 
-    let isCorrect = false;
-    if (user) {
-      isCorrect = await bcryptjs.compare(password, user.password);
-    }
-
-    if (!isCorrect) {
-      return res.status(401).send({ status: "Not authorized" });
-    }
-
-    const token = jwt.sign({ uid: user._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN,
-    });
-
-    res.cookie("token", token, {
-      expires: new Date(Date.now() + 86400e3),
-      httpOnly: true,
-    });
-    res.status(201).send({
-      token: token,
-      user: {
-        email,
-        subscription: user.subscription,
-      },
-    });
-  } catch (error) {
-    next(error);
+  let isCorrect = false;
+  if (user) {
+    isCorrect = await bcryptjs.compare(password, user.password);
   }
+
+  if (!isCorrect) {
+    return res.status(401).send({ status: "Not authorized" });
+  }
+
+  const token = jwt.sign({ uid: user._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+
+  res.cookie("token", token, {
+    expires: new Date(Date.now() + 86400e3),
+    httpOnly: true,
+  });
+  res.status(201).send({
+    token: token,
+    user: {
+      email,
+      subscription: user.subscription,
+    },
+  });
 };
 
 exports.logout = async (req, res, next) => {
