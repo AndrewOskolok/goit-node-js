@@ -31,6 +31,7 @@ exports.Server = class Server {
 
   initMiddlewares() {
     this.app.use(express.json());
+    this.app.use(express.static("public"));
     this.app.use(cors({ origin: process.env.ALLOWED_ORIGIN }));
     this.app.use(cookieParser());
   }

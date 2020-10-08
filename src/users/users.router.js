@@ -1,8 +1,9 @@
 const { Router } = require("express");
 const Joi = require("joi");
 const { validate } = require("../helpers/validate");
+const { wrapTryCatch } = require("../helpers/wrapTryCatch");
 const { authorize } = require("../auth/auth.controller");
-const { getLoggedUser, updateSubUser } = require("./users.controller");
+const { getLoggedUser, updateSubUser } = require("../users/users.controller");
 
 const router = Router();
 
@@ -13,6 +14,6 @@ const updateSubSchema = Joi.object({
 
 router.get("/current", authorize, getLoggedUser);
 
-router.patch("/", validate(updateSubSchema), updateSubUser);
+router.patch("/", validate(updateSubSchema), wrapTryCatch(updateSubUser));
 
 exports.usersRouter = router;
