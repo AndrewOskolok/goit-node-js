@@ -1,6 +1,8 @@
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { UserModel } = require("../users/users.model");
+const { createUserAvatar } = require("../helpers/avatarGenerator");
+const { avatarCompresHandler } = require("../helpers/avatarCompres");
 
 exports.register = async (req, res, next) => {
   const { email, password } = req.body;
@@ -16,11 +18,16 @@ exports.register = async (req, res, next) => {
     Number(process.env.BCRYPT_SALT)
   );
 
+  const createdUserAvatar = await createUserAvatar(email, next);
+
+  await avatarCompresHandler(createdUserAvatar, next);
+
   const newUser = await UserModel.create({
     email,
     password: hashPassword,
+    avatarURL: `${process.env.DEFAULT_URL}/images/${createdUserAvatar}`,
   });
-
+  console.log(newUser);
   res.status(201).send({ user: { email, subscription: newUser.subscription } });
 };
 
